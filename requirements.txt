@@ -1,0 +1,22 @@
+# Pinned to what's actually installed and tested on this machine (Python 3.11).
+streamlit==1.58.0
+pandas==2.3.2
+openpyxl==3.1.5
+requests==2.34.2
+python-dotenv==1.2.2
+
+# Agent framework + model client
+agno==2.6.18
+openai==2.41.1
+
+# Real-mode tools (Groq is reached via the openai client above; no groq SDK needed)
+firecrawl-py==4.28.2
+
+# Postgres session store
+psycopg==3.3.4
+psycopg-binary==3.3.4
+
+# Optional tracing (only used when ENABLE_TRACING=true)
+openinference-instrumentation-agno==0.1.38
+opentelemetry-sdk==1.43.0
+opentelemetry-exporter-otlp==1.43.0
