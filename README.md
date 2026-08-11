@@ -1,4 +1,4 @@
-# Chemical Market Discovery Agent
+# Catalyst
 
 A multi-agent system that turns a plain-English request for a chemical into a verified,
 export-ready list of companies likely to buy it.
