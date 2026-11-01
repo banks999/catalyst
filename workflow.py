@@ -62,7 +62,13 @@ from agno.models.openai import OpenAIChat
 from agno.db.postgres import PostgresDb
 
 # --- STORAGE DATABASE BACKEND LAYER ---
-agent_db = PostgresDb(db_url=POSTGRES_URL, session_table="chemical_agent_sessions")
+# Postgres is optional: with no POSTGRES_URL the app runs without saved-session history
+# (PostgresDb raises at construction if given no URL, which would stop the app starting).
+agent_db = (
+    PostgresDb(db_url=POSTGRES_URL, session_table="chemical_agent_sessions")
+    if POSTGRES_URL
+    else None
+)
 
 TABLE_HEADER = "| Company Name | Contact Number | Email ID | Product Made |"
 

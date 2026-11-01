@@ -164,11 +164,12 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("Saved Sessions")
 
-    try:
-        all_sessions = agent_team_coordinator.db.get_sessions(session_type="team")
-    except Exception as e:
-        st.error(f"Could not load saved sessions: {e}")
-        all_sessions = []
+    all_sessions = []
+    if agent_team_coordinator.db is not None:
+        try:
+            all_sessions = agent_team_coordinator.db.get_sessions(session_type="team")
+        except Exception as e:
+            st.error(f"Could not load saved sessions: {e}")
 
     if all_sessions:
         # Most recent first
@@ -214,6 +215,8 @@ with st.sidebar:
                         }
                     ]
                 st.rerun()
+    elif agent_team_coordinator.db is None:
+        st.caption("Session history is off (no database configured).")
     else:
         st.info("No research traces found in your database instance yet.")
 
