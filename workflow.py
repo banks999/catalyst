@@ -1,5 +1,4 @@
 import os
-import re
 from dotenv import load_dotenv
 
 # --- INITIALIZE ENV CONFIGS ---
@@ -55,6 +54,8 @@ if os.getenv("ENABLE_TRACING", "false").strip().lower() == "true" and os.getenv(
     except Exception as _trace_err:  # never let tracing kill the demo
         print(f"[tracing disabled] {_trace_err}")
 
+from contacts import extract_contacts
+
 # --- AGNO ECOSYSTEM IMPORTS ---
 from agno.agent import Agent
 from agno.team import Team
@@ -89,21 +90,6 @@ _JUNK = ("indiamart", "justdial", "tradeindia", "exportersindia", "gujaratdirect
          "globenewswire", "statista", ".pdf")
 
 
-def _extract_contacts(md: str):
-    """Pull emails + phones from scraped markdown. High precision on purpose:
-    phones must carry a '+' or a tel: link so we never surface a CAS number,
-    date or timestamp as a phone (a wrong number on stage is worse than N/A)."""
-    md = md or ""
-    emails = re.findall(r"mailto:([\w.+-]+@[\w-]+\.[\w.-]+)", md)
-    emails += re.findall(r"[\w.+-]+@[\w-]+\.[\w.-]+", md)
-    emails = [e for e in dict.fromkeys(emails)
-              if not e.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"))]
-    phones = re.findall(r"tel:(\+?[\d\s\-()]{8,}\d)", md)
-    phones += re.findall(r"\+\d[\d\s\-()]{7,}\d", md)  # must start with + = real phone
-    phones = [p.strip() for p in dict.fromkeys(phones) if 10 <= len(re.sub(r"\D", "", p)) <= 13]
-    return emails[:3], phones[:3]
-
-
 if DEMO_MODE == "real":
     from firecrawl import Firecrawl
     _fc = Firecrawl(api_key=os.getenv("FIRECRAWL_API_KEY"))
@@ -136,7 +122,7 @@ if DEMO_MODE == "real":
             md = getattr(doc, "markdown", "") or ""
         except Exception as e:
             return f"scrape failed: {e}"
-        emails, phones = _extract_contacts(md)
+        emails, phones = extract_contacts(md)
         return f"emails: {emails or 'none'} | phones: {phones or 'none'}"
 
 
@@ -198,8 +184,9 @@ corporate_profiler = Agent(
 # =========================================================================
 # TEAM COORDINATOR
 #   real -> analyst -> lead_finder -> profiler produce the live table.
-#   mock -> no members; the single LLM call hits the mock server, which
-#           returns the filter-aware table directly.
+#   mock -> no members and the model is never called: main.py answers from
+#           mock_leads.py directly. The coordinator still exists in mock mode
+#           because main.py reads its (optional) session database.
 # =========================================================================
 
 _REAL_INSTRUCTIONS = [
@@ -231,9 +218,9 @@ agent_team_coordinator = Team(
 
 if __name__ == "__main__":
     # self-checks that don't need the network
-    assert _extract_contacts("mailto:a@b.com tel:+91 99251 22752") == (["a@b.com"], ["+91 99251 22752"])
+    assert extract_contacts("mailto:a@b.com tel:+91 99251 22752") == (["a@b.com"], ["+91 99251 22752"])
     # CAS number / date / timestamp must NOT be read as phones:
-    assert _extract_contacts("CAS 27253-31-2 on 2026-02-26 id 1719416109703") == ([], [])
+    assert extract_contacts("CAS 27253-31-2 on 2026-02-26 id 1719416109703") == ([], [])
     n = len(agent_team_coordinator.members or [])
     assert (n == 3) if DEMO_MODE == "real" else (n == 0), "members not wired for mode"
     print(f"OK  DEMO_MODE={DEMO_MODE}  MODEL_ID={MODEL_ID}  members={n}")

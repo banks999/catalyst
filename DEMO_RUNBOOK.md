@@ -56,7 +56,8 @@ The audience watches the table react to plain English. That's the pitch.
 
 **Filters the mock understands:** location (Gujarat, Maharashtra, Uttar Pradesh and their
 cities/industrial zones — Mumbai, Pune, Ahmedabad, Noida, GIDC, MIDC…), size (large/medium/small, MSME), and exclusions
-(`exclude X`, `without X`, `not X`). It does NOT filter by product keyword — keep product
+(`exclude X`, `without X`, `not X`; several allowed: `exclude Crest and Josh`; locations
+too: `exclude Gujarat companies`). It does NOT filter by product keyword — keep product
 words in the sentence for flavor, but the filtering is location/size/exclude.
 
 ---
@@ -65,10 +66,10 @@ words in the sentence for flavor, but the filtering is location/size/exclude.
 
 - Don't expect product-name filtering ("only ethanol") to shrink the list — mock filters on
   location/size/exclude only. Non-matching filters just return the fuller list; nothing breaks.
-- Unknown locations (e.g. Kerala, Hyderabad) are silently ignored, not rejected — `small companies
-  in Kerala` returns the small companies from anywhere. A genuinely empty combo (e.g. `large
-  companies in Gujarat, exclude Styrenix`) shows a friendly "No matching
-  companies found" row — intended, not an error, but avoid it on stage.
+- Locations outside Gujarat / Maharashtra / Uttar Pradesh (e.g. Kerala, Hyderabad) return a
+  single "No sample data for Kerala (sample covers …)" row — intended, not an error, but avoid
+  it on stage. The same friendly "No matching companies found" row appears for an empty combo
+  (e.g. `large companies in Gujarat, exclude Styrenix`).
 
 ---
 

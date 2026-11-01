@@ -66,6 +66,10 @@ timestamps that a naive `\d{10}` pattern happily reports as phone numbers. Numbe
 must carry a `+` prefix or a `tel:` link to qualify. A wrong number is worse than no
 number, so unmatched fields return `N/A` rather than a plausible-looking fabrication.
 
+**Scraped text never becomes an Excel formula.** Company names and emails come from
+arbitrary web pages, and openpyxl writes any string starting with `=` as a live formula
+(e.g. `=HYPERLINK(...)`). The export forces those cells to plain text.
+
 **Missing data is never invented.** Every agent is instructed to emit `N/A` for fields it
 cannot verify, and the UI highlights them. The system's honesty about gaps is a feature,
 not an oversight.
@@ -115,14 +119,22 @@ Opens at `http://localhost:8501`.
 **Mock mode is the default and needs no API keys.** For the live pipeline, set
 `DEMO_MODE=real` in `.env`, add a Groq key and a Firecrawl key, and restart.
 
-Postgres is optional — without it the chat and tables still work, you just lose saved
-session history.
+Postgres is optional — leave `POSTGRES_URL` unset and the chat and tables still work, you
+just lose saved session history.
 
-Run the built-in self-checks without touching the network:
+## Tests
+
+The suite runs fully offline (no keys, no database, no network):
 
 ```bash
-python workflow.py
+pip install -r requirements-dev.txt
+pytest
 ```
+
+It covers the mock filters, contact extraction (including excerpts of real company
+footers), Markdown-table parsing, Excel export, and the real-mode tool wiring against a
+fake Firecrawl client. CI runs it on Python 3.11 and 3.13. Quick self-checks are also
+available via `python workflow.py` and `python mock_leads.py`.
 
 ---
 
@@ -140,6 +152,9 @@ Stated plainly, because they shaped the design:
   roughly 20–25% a year. This returns what a company publishes today; it does not verify
   that anyone answers.
 - **Mock mode filters on location, size and exclusions only** — not on product keywords.
+  It knows three states (Gujarat, Maharashtra, Uttar Pradesh) and a pool of 8 companies; a
+  location outside those (e.g. "near Kerala") returns an explicit "no sample data" row
+  rather than a silently unfiltered list.
 - **Buyer identification is inference, not evidence.** The pipeline reasons that a company
   making unsaturated polyester resin must buy maleic anhydride. That is sound chemistry,
   but it is not proof of a purchase. Customs and shipment records would be evidence;
@@ -150,12 +165,15 @@ Stated plainly, because they shaped the design:
 ## Repository layout
 
 ```
-main.py           Streamlit UI, Markdown-table parsing, styled Excel export,
-                  session sidebar and history rebuilding
+main.py           Streamlit UI, session sidebar and history rebuilding
 workflow.py       Mode switch, Firecrawl tools, the three agents, Team coordinator
+contacts.py       Email/phone extraction from scraped pages (pure Python)
+tables.py         Markdown-table parsing and styled Excel export
 mock_leads.py     Offline mode — pure-Python filtering over a company list
+tests/            pytest suite (offline); CI in .github/workflows/tests.yml
 DEMO_RUNBOOK.md   Operating notes: demo paths, failure modes, recovery
-requirements.txt  Pinned dependencies (Python 3.11)
+requirements.txt  Pinned runtime dependencies (tested on Python 3.11 and 3.13)
+requirements-dev.txt  Adds pytest and ruff
 ```
 
 ---

@@ -1,12 +1,11 @@
-import io
-import re
 import uuid
 import streamlit as st
-import pandas as pd
-from openpyxl.styles import PatternFill, Font
-from openpyxl.utils.dataframe import dataframe_to_rows
 from workflow import agent_team_coordinator, SERVER_URL, DEMO_MODE, MODEL_ID
 from mock_leads import mock_answer
+from tables import parse_markdown_table_to_df, generate_styled_excel
+
+# Base filename for every Excel export (the .xlsx extension is added where used).
+EXPORT_NAME = "market_leads"
 
 st.set_page_config(page_title="Lead Discovering Agent", layout="wide")
 
@@ -58,83 +57,12 @@ def _rebuild_messages_from_session(session_id: str) -> list[dict]:
 
             assistant_text = run.content
             if assistant_text:
-                file_label = "historical_leads" if "|" in assistant_text else None
+                file_label = EXPORT_NAME if "|" in assistant_text else None
                 rebuilt.append({"role": "assistant", "content": assistant_text, "file_label": file_label})
 
         return rebuilt
     except Exception:
         return []
-
-
-def parse_markdown_table_to_df(md_text):
-    if not md_text:
-        return None
-    try:
-        lines = [line.strip() for line in md_text.split('\n') if line.strip()]
-        separator_idx = -1
-        for i, line in enumerate(lines):
-            if re.match(r'^\|[\s=:|-]+\|$', line):
-                separator_idx = i
-                break
-        if separator_idx == -1 or separator_idx == 0:
-            return None
-
-        headers = [c.strip() for c in lines[separator_idx - 1].split('|')[1:-1] if c.strip()]
-        raw_rows = lines[separator_idx + 1:]
-
-        data_rows = []
-        for row in raw_rows:
-            if not row.startswith('|'):
-                continue
-            cells = [c.strip() for c in row.split('|')[1:-1]]
-            if len(cells) < len(headers):
-                cells += ["N/A"] * (len(headers) - len(cells))
-            else:
-                cells = cells[:len(headers)]
-            data_rows.append(cells)
-
-        if not data_rows:
-            return None
-
-        df = pd.DataFrame(data_rows, columns=headers)
-        na_variants = ["Data Not Available", "Not Available", "Not Listed", "Unknown", "None", "null", "NaN", "", "-", "n/a", "N/A."]
-        for variant in na_variants:
-            df = df.replace(variant, "N/A")
-        return df
-    except Exception:
-        return None
-
-
-def generate_styled_excel(df: pd.DataFrame) -> bytes:
-    buffer = io.BytesIO()
-    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name="Market Leads")
-        workbook = writer.book
-        worksheet = writer.sheets["Market Leads"]
-
-        na_fill = PatternFill(start_color="FCE4D6", end_color="FCE4D6", fill_type="solid")
-        na_font = Font(name="Calibri", size=11, italic=True, color="C00000")
-        header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
-        header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
-
-        for cell in worksheet[1]:
-            cell.fill = header_fill
-            cell.font = header_font
-
-        for r_idx, row in enumerate(dataframe_to_rows(df, index=False, header=False), start=2):
-            for c_idx, value in enumerate(row, start=1):
-                cell = worksheet.cell(row=r_idx, column=c_idx)
-                if str(value).strip() == "N/A":
-                    cell.fill = na_fill
-                    cell.font = na_font
-
-        for col in worksheet.columns:
-            max_len = max(len(str(cell.value or '')) for cell in col)
-            col_letter = col[0].column_letter
-            worksheet.column_dimensions[col_letter].width = max(max_len + 3, 12)
-
-    return buffer.getvalue()
-
 
 
 if "agent_session_id" not in st.session_state:
@@ -295,7 +223,7 @@ if user_prompt := st.chat_input("Ex: Ethanol processing factories near Gujarat..
                 with st.expander("technical detail (for debugging)"):
                     st.caption(detail)
 
-        file_label = "demo_market_leads"
+        file_label = EXPORT_NAME
 
         response_placeholder.markdown(final_text)
         st.session_state.messages.append({"role": "assistant", "content": final_text, "file_label": file_label})
