@@ -99,8 +99,8 @@ with technical detail tucked into a collapsed expander.
 ## Running it
 
 ```bash
-git clone https://github.com/<your-username>/chemical-market-discovery-agent.git
-cd chemical-market-discovery-agent
+git clone https://github.com/banks999/catalyst.git
+cd catalyst
 
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate

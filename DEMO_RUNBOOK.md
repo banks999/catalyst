@@ -1,4 +1,4 @@
-# Demo Runbook — Chemical Market Discovery Agent
+# Demo Runbook — Catalyst
 
 **Bottom line: demo in MOCK mode. It's instant, offline-proof, and the filters work live.**
 Real mode (Groq cloud + Firecrawl) genuinely works — real companies, real contacts — but it's
@@ -40,10 +40,10 @@ Type these into the chat. Each returns a styled table + a **Download .xlsx** but
 The point to make on stage: **plain-language filters change the table live.**
 
 1. **`companies that buy maleic anhydride near Gujarat`**
-   → 5 companies, all in Gujarat. (Shows: location filter + the "buy → downstream product" story.)
+   → 3 companies, all in Gujarat. (Shows: location filter + the "buy → downstream product" story.)
 
-2. **`unsaturated polyester resin makers, exclude Acme`**
-   → full list with **Acme removed**. (Shows: exclusion filter.)
+2. **`unsaturated polyester resin makers, exclude Bhansali`**
+   → full list (8) shrinks to 7 with **Bhansali removed**. (Shows: exclusion filter.)
 
 3. **`large industrial solvent manufacturers`**
    → only the 3 **large** companies. (Shows: company-size filter.)
@@ -51,11 +51,11 @@ The point to make on stage: **plain-language filters change the table live.**
 Great combo to show the feature back-to-back:
 - First type `resin manufacturers` (full list),
 - then `resin manufacturers near Gujarat` (list shrinks to Gujarat),
-- then `resin manufacturers near Gujarat, exclude Acme` (shrinks again).
+- then `resin manufacturers near Gujarat, exclude Josh` (shrinks again, 3 → 2).
 The audience watches the table react to plain English. That's the pitch.
 
-**Filters the mock understands:** location (Gujarat, Maharashtra, Mumbai, Pune, Hyderabad,
-Chennai, GIDC, MIDC…), size (large/medium/small, MSME), and exclusions
+**Filters the mock understands:** location (Gujarat, Maharashtra, Uttar Pradesh and their
+cities/industrial zones — Mumbai, Pune, Ahmedabad, Noida, GIDC, MIDC…), size (large/medium/small, MSME), and exclusions
 (`exclude X`, `without X`, `not X`). It does NOT filter by product keyword — keep product
 words in the sentence for flavor, but the filtering is location/size/exclude.
 
@@ -65,8 +65,10 @@ words in the sentence for flavor, but the filtering is location/size/exclude.
 
 - Don't expect product-name filtering ("only ethanol") to shrink the list — mock filters on
   location/size/exclude only. Non-matching filters just return the fuller list; nothing breaks.
-- A query with an impossible combo (e.g. `small companies in Kerala`) returns a friendly
-  "No matching companies found" row — that's intended, not an error, but avoid it on stage.
+- Unknown locations (e.g. Kerala, Hyderabad) are silently ignored, not rejected — `small companies
+  in Kerala` returns the small companies from anywhere. A genuinely empty combo (e.g. `large
+  companies in Gujarat, exclude Styrenix`) shows a friendly "No matching
+  companies found" row — intended, not an error, but avoid it on stage.
 
 ---
 

@@ -12,7 +12,9 @@ openai==2.41.1
 # Real-mode tools (Groq is reached via the openai client above; no groq SDK needed)
 firecrawl-py==4.28.2
 
-# Postgres session store
+# Postgres session store (agno's PostgresDb imports sqlalchemy's asyncio module,
+# which needs greenlet -> the [asyncio] extra is required even in mock mode)
+sqlalchemy[asyncio]==2.1.6
 psycopg==3.3.4
 psycopg-binary==3.3.4
 
