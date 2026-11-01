@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catalyst — Multi-Agent Lead Discovery</title>
+<meta name="description" content="A three-agent system that turns a plain-English chemical request into a verified, export-ready list of companies likely to buy it.">
+<style>
+  :root {
+    --bg: #fafaf7; --surface: #ffffff; --text: #1c1d20; --muted: #5c6068;
+    --line: #e4e3dc; --accent: #1f4e78; --accent-ink: #ffffff; --code: #f1f0ea;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #131416; --surface: #1c1d21; --text: #ececea; --muted: #a0a3aa;
+      --line: #2e3036; --accent: #7fb2e0; --accent-ink: #0d1117; --code: #23252a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 17px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 64px 0 32px; }
+  .eyebrow { color: var(--muted); font-size: 14px; letter-spacing: .06em; text-transform: uppercase; }
+  h1 { font-size: clamp(34px, 6vw, 52px); line-height: 1.1; margin: 8px 0 16px; }
+  .lede { font-size: 20px; color: var(--muted); max-width: 640px; margin: 0 0 28px; }
+  .btns { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn { display: inline-block; padding: 11px 20px; border-radius: 8px; text-decoration: none;
+    font-weight: 600; border: 1px solid var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); }
+  .note { font-size: 14px; color: var(--muted); margin-top: 12px; }
+  section { padding: 36px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 26px; margin: 0 0 14px; }
+  p { margin: 0 0 14px; }
+  figure { margin: 24px 0 0; }
+  figure img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; display: block; }
+  figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
+  .flow { display: grid; gap: 10px; margin: 20px 0; }
+  .step { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; }
+  .step b { display: block; }
+  .step span { color: var(--muted); font-size: 15px; }
+  .arrow { text-align: center; color: var(--muted); line-height: 1; }
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+  .card h3 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 0; font-size: 15px; color: var(--muted); }
+  code { background: var(--code); padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  ul { padding-left: 20px; margin: 0 0 14px; }
+  li { margin-bottom: 8px; }
+  footer { padding: 32px 0 64px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Product-development project · Multi-agent AI</div>
+  <h1>Catalyst</h1>
+  <p class="lede">Type <em>“companies that buy maleic anhydride near Gujarat”</em> and get an export-ready
+    spreadsheet of real manufacturers who likely need it — with contact details, and honest blanks where
+    a detail couldn't be verified.</p>
+  <div class="btns">
+    <a class="btn primary" href="https://catalyst-demo-24to.onrender.com">Try the live demo</a>
+    <a class="btn" href="https://github.com/banks999/catalyst">View source</a>
+  </div>
+  <p class="note">The demo runs in offline “mock” mode on a free host — the first load can take up to a minute to wake up.</p>
+  <figure>
+    <img src="img/gujarat-query.png" alt="Catalyst showing three Gujarat companies in a table with an Excel download button">
+    <figcaption>A plain-English query returns a filtered lead table and a styled Excel export.</figcaption>
+  </figure>
+</header>
+
+<section>
+  <h2>The problem</h2>
+  <p>Sales teams at chemical suppliers need to find buyers for a product. But manufacturers advertise what they
+    <strong>sell</strong>, not what they <strong>buy</strong> — so searching the web for “companies that buy maleic
+    anhydride” returns nothing useful. Doing it by hand means hours of chemistry reasoning, searching and copying
+    contact details out of website footers.</p>
+</section>
+
+<section>
+  <h2>How it works</h2>
+  <p>Catalyst reasons one step down the supply chain first, then searches for the companies that make the downstream
+    product.</p>
+  <div class="flow">
+    <div class="step"><b>1 · Chemical Analyst</b><span>Maleic anhydride → unsaturated polyester resins, alkyd resins. Emits product names only, never companies.</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>2 · Lead Finder</b><span>Live Firecrawl web search for real manufacturers of those products; filters out directories and market-report spam.</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>3 · Corporate Profiler</b><span>Scrapes each site <em>including the footer</em>, where contact details actually live, and builds the final table.</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>Streamlit UI → styled .xlsx</b><span>A Team coordinator orchestrates the agents, applies location / size / exclusion filters, and saves sessions to Postgres.</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>Engineering decisions</h2>
+  <div class="grid">
+    <div class="card"><h3>Custom scraping tools</h3><p>The framework's stock Firecrawl wrapper can't disable <code>onlyMainContent</code>, which strips the footer. The tools here call the client directly.</p></div>
+    <div class="card"><h3>Extraction inside the tool</h3><p>Regex pulls emails and phones in Python, so each call returns ~50 tokens instead of a 25,000-character page — viable on a free-tier token budget.</p></div>
+    <div class="card"><h3>A phone regex that refuses to guess</h3><p>CAS numbers, dates and timestamps look like phone numbers. Matches must carry a <code>+</code> or <code>tel:</code> link; otherwise the field is <code>N/A</code>.</p></div>
+    <div class="card"><h3>Missing data is never invented</h3><p>Every agent emits <code>N/A</code> for unverifiable fields, and the UI and Excel export highlight them.</p></div>
+    <div class="card"><h3>Mock and real modes</h3><p>One <code>.env</code> line switches between an offline demo with real Python filtering and the live pipeline.</p></div>
+    <div class="card"><h3>Degrades, doesn't crash</h3><p>60 s model timeout, bounded orchestration, tracing off by default, and rate limits shown as a calm message rather than a stack trace.</p></div>
+  </div>
+  <figure>
+    <img src="img/large-query.png" alt="Catalyst filtered to the three large companies">
+    <figcaption>Filters in plain English: “large industrial solvent manufacturers” narrows to the three large companies.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>Stack</h2>
+  <table>
+    <tr><th>Layer</th><th>Choice</th></tr>
+    <tr><td>Agent framework</td><td>Agno — <code>Agent</code>, <code>Team</code></td></tr>
+    <tr><td>Model</td><td><code>openai/gpt-oss-120b</code> via Groq's OpenAI-compatible API</td></tr>
+    <tr><td>Search + scraping</td><td>Firecrawl</td></tr>
+    <tr><td>UI</td><td>Streamlit</td></tr>
+    <tr><td>Session store</td><td>Postgres</td></tr>
+    <tr><td>Export</td><td>pandas + openpyxl</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>Honest limitations</h2>
+  <ul>
+    <li><strong>The hosted demo is mock mode.</strong> It filters a curated list of 8 real Indian manufacturers by location, size and exclusions — not by product keyword. The live pipeline needs Groq and Firecrawl keys.</li>
+    <li><strong>Live mode takes 1–2.5 minutes per query</strong> and is bounded by free-tier token budgets.</li>
+    <li><strong>Contact data decays</strong> (roughly 20–25% a year); it reports what a company publishes today, not that anyone answers.</li>
+    <li><strong>Buyer identification is inference, not evidence.</strong> A resin maker plausibly buys maleic anhydride; customs records would be proof. This produces a well-reasoned shortlist.</li>
+  </ul>
+</section>
+
+<footer>
+  Catalyst · MIT license · <a href="https://github.com/banks999/catalyst">github.com/banks999/catalyst</a>
+</footer>
+
+</div>
+</body>
+</html>
